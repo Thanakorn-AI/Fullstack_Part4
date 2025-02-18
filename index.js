@@ -6,13 +6,13 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const blogSchema = new mongoose.Schema({
-  title: String,
-  author: String,
-  url: String,
-  likes: Number
+  title: { type: String, required: true },
+  author: { type: String, required: true },
+  url: { type: String, required: true },
+  likes: { type: Number, default: 0 }
 });
 
-const Blog = mongoose.model('Blog', blogSchema);
+const Blog = mongoose.model('Blog', blogSchema, 'Bloglist-app');
 
 const mongoUrl = process.env.MONGODB_URI || 'mongodb://localhost/bloglist';
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -22,22 +22,25 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true })
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/blogs', (request, response) => {
-  Blog.find({})
-    .then(blogs => {
-      response.json(blogs);
-    })
-    .catch(error => response.status(500).json({ error: 'Error fetching blogs' }));
+app.get('/api/blogs', async (request, response) => {
+  try {
+    const blogs = await Blog.find({});
+    response.json(blogs);
+  } catch (error) {
+    response.status(500).json({ error: 'Error fetching blogs' });
+  }
 });
 
-app.post('/api/blogs', (request, response) => {
-  const blog = new Blog(request.body);
-
-  blog.save()
-    .then(result => {
-      response.status(201).json(result);
-    })
-    .catch(error => response.status(400).json({ error: 'Error saving the blog' }));
+app.post('/api/blogs', async (request, response) => {
+  console.log('Request body:', request.body);  // Add this line to debug
+  try {
+    const blog = new Blog(request.body);
+    const result = await blog.save();
+    response.status(201).json(result);
+  } catch (error) {
+    console.error('Error saving blog:', error);  // Log error details
+    response.status(400).json({ error: 'Error saving the blog' });
+  }
 });
 
 const PORT = process.env.PORT || 3003;

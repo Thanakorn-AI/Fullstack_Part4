@@ -91,3 +91,34 @@ describe('Most Blogs', () => {
     assert.deepStrictEqual(result, expected);
   });
 });
+
+
+describe('Most Likes', () => {
+  const blogs = [
+    { author: "Michael Chan", likes: 7 },
+    { author: "Edsger W. Dijkstra", likes: 17 }, // Adjusted to ensure unique maximum
+    { author: "Robert C. Martin", likes: 2 }
+  ];
+
+  test('returns the author with the most likes', () => {
+    const result = listHelper.mostLikes(blogs);
+    const expected = { author: "Edsger W. Dijkstra", likes: 17 };
+    assert.deepStrictEqual(result, expected);
+  });
+
+  test('returns correct data with multiple entries for the same author', () => {
+    const extendedBlogs = [
+      ...blogs,
+      { author: "Robert C. Martin", likes: 10 },
+      { author: "Edsger W. Dijkstra", likes: 5 }
+    ];
+    const result = listHelper.mostLikes(extendedBlogs);
+    const expected = { author: "Edsger W. Dijkstra", likes: 22 }; // Updated total likes for Dijkstra
+    assert.deepStrictEqual(result, expected);
+  });
+
+  test('returns an empty object for an empty array', () => {
+    const result = listHelper.mostLikes([]);
+    assert.deepStrictEqual(result, {});
+  });
+});

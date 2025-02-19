@@ -1,10 +1,14 @@
 // utils/list_helper.js
-// This function simply returns 1 for any input of blog posts
 const dummy = (blogs) => {
     return 1;
   };
   
+const totalLikes = (blogs) => {
+  return blogs.reduce((sum, blog) => sum + blog.likes, 0);
+};
+
   module.exports = {
-    dummy
+    dummy,
+    totalLikes
   };
   

@@ -107,4 +107,24 @@ describe('POST /api/blogs', () => {
     expect(returnedBlog.likes).toBe(newBlog.likes);
     expect(returnedBlog.id).toBeDefined(); // From previous task's id transformation
   });
+
+  test('missing likes property defaults to 0', async () => {
+    // New blog data without likes
+    const newBlog = {
+      title: 'Blog Without Likes',
+      author: 'No Likes Author',
+      url: 'http://nolikes.com'
+    };
+
+    // Send POST request
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/);
+
+    // Verify likes is 0 in the response
+    const returnedBlog = response.body;
+    expect(returnedBlog.likes).toBe(0);
+  });
 });

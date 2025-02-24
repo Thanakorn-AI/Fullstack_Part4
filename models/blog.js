@@ -8,6 +8,15 @@ const blogSchema = new mongoose.Schema({
   likes: { type: Number, default: 0 }
 });
 
+// Transform _id to id and remove _id and __v from the JSON output
+blogSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString(); // Convert ObjectId to string
+    delete returnedObject._id; // Remove _id
+    delete returnedObject.__v; // Remove version key
+  }
+});
+
 const Blog = mongoose.model('Blog', blogSchema, 'Bloglist-app');
 
 module.exports = Blog;

@@ -48,4 +48,30 @@ describe('GET /api/blogs', () => {
     const blogs = response.body;
     expect(blogs.length).toBe(2); // Assuming 2 blogs are inserted
   });
+
+  test('blog posts have id property instead of _id', async () => {
+    // Insert a sample blog
+    const newBlog = new Blog({
+      title: 'Test Blog',
+      author: 'Test Author',
+      url: 'http://test.com',
+      likes: 3,
+    });
+    await newBlog.save();
+
+    // Fetch blogs from the API
+    const response = await api
+      .get('/api/blogs')
+      .expect(200)
+      .expect('Content-Type', /application\/json/);
+
+    // Get the first blog from the response
+    const blog = response.body[0];
+
+    // Verify that 'id' exists and '_id' does not
+    expect(blog.id).toBeDefined();
+    expect(blog._id).toBeUndefined();
+  });
 });
+
+  

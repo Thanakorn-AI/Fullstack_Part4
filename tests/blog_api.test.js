@@ -193,3 +193,49 @@ describe('DELETE /api/blogs/:id', () => {
       .expect(404);
   });
 });
+
+describe('PUT /api/blogs/:id', () => {
+  test('successfully updates the likes of an existing blog', async () => {
+    // Create a blog to update
+    const blogToUpdate = new Blog({
+      title: 'Blog to Update',
+      author: 'Update Author',
+      url: 'http://update.com',
+      likes: 5
+    });
+    const savedBlog = await blogToUpdate.save();
+
+    // New likes value
+    const updatedData = { likes: 10 };
+
+    // Send PUT request
+    const response = await api
+      .put(`/api/blogs/${savedBlog.id}`)
+      .send(updatedData)
+      .expect(200)
+      .expect('Content-Type', /application\/json/);
+
+    // Verify the response
+    const updatedBlog = response.body;
+    expect(updatedBlog.likes).toBe(10);
+    expect(updatedBlog.title).toBe(blogToUpdate.title); // Unchanged
+    expect(updatedBlog.author).toBe(blogToUpdate.author); // Unchanged
+    expect(updatedBlog.url).toBe(blogToUpdate.url); // Unchanged
+    expect(updatedBlog.id).toBe(savedBlog.id);
+
+    // Verify in database
+    const blogInDb = await Blog.findById(savedBlog.id);
+    expect(blogInDb.likes).toBe(10);
+  });
+
+  test('returns 404 if blog does not exist', async () => {
+    // Use a random, non-existent ID
+    const nonExistentId = '507f1f77bcf86cd799439011'; // Example valid ObjectId format
+    const updatedData = { likes: 15 };
+
+    await api
+      .put(`/api/blogs/${nonExistentId}`)
+      .send(updatedData)
+      .expect(404);
+  });
+});

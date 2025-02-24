@@ -38,4 +38,22 @@ router.delete('/:id', async (request, response) => {
   }
 });
 
+// New PUT route (Update likes)
+router.put('/:id', async (request, response) => {
+  try {
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      request.params.id,
+      { likes: request.body.likes }, // Focus on updating likes
+      { new: true, runValidators: true }
+    );
+    if (!updatedBlog) {
+      return response.status(404).json({ error: 'Blog not found' });
+    }
+    response.json(updatedBlog);
+  } catch (error) {
+    console.error('Error updating blog:', error);
+    response.status(400).json({ error: 'Error updating the blog' });
+  }
+});
+
 module.exports = router;

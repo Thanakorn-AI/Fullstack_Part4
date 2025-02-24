@@ -24,4 +24,18 @@ router.post('/', async (request, response) => {
   }
 });
 
+// New DELETE route
+router.delete('/:id', async (request, response) => {
+  try {
+    const blog = await Blog.findByIdAndDelete(request.params.id);
+    if (!blog) {
+      return response.status(404).json({ error: 'Blog not found' });
+    }
+    response.status(204).end(); // No content on successful deletion
+  } catch (error) {
+    console.error('Error deleting blog:', error);
+    response.status(500).json({ error: 'Error deleting the blog' });
+  }
+});
+
 module.exports = router;

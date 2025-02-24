@@ -155,3 +155,41 @@ describe('POST /api/blogs', () => {
   });
 });
 
+describe('DELETE /api/blogs/:id', () => {
+  test('successfully deletes an existing blog', async () => {
+    // Create a blog to delete
+    const blogToDelete = new Blog({
+      title: 'Blog to Delete',
+      author: 'Delete Author',
+      url: 'http://delete.com',
+      likes: 2
+    });
+    const savedBlog = await blogToDelete.save();
+
+    // Initial count of blogs
+    const initialBlogs = await Blog.find({});
+    const initialCount = initialBlogs.length;
+
+    // Send DELETE request
+    await api
+      .delete(`/api/blogs/${savedBlog.id}`)
+      .expect(204);
+
+    // Verify the blog was removed
+    const blogsAfter = await Blog.find({});
+    expect(blogsAfter.length).toBe(initialCount - 1);
+
+    // Verify the specific blog is gone
+    const blogIds = blogsAfter.map(blog => blog.id);
+    expect(blogIds).not.toContain(savedBlog.id);
+  });
+
+  test('returns 404 if blog does not exist', async () => {
+    // Use a random, non-existent ID
+    const nonExistentId = '507f1f77bcf86cd799439011'; // Example valid ObjectId format
+
+    await api
+      .delete(`/api/blogs/${nonExistentId}`)
+      .expect(404);
+  });
+});

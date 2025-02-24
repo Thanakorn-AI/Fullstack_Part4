@@ -127,4 +127,31 @@ describe('POST /api/blogs', () => {
     const returnedBlog = response.body;
     expect(returnedBlog.likes).toBe(0);
   });
+
+  test('returns 400 if title is missing', async () => {
+    const newBlog = {
+      author: 'No Title Author',
+      url: 'http://notitle.com',
+      likes: 5
+    };
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400);
+  });
+
+  test('returns 400 if url is missing', async () => {
+    const newBlog = {
+      title: 'No URL Blog',
+      author: 'No URL Author',
+      likes: 3
+    };
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400);
+  });
 });
+

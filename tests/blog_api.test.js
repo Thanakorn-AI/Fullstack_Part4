@@ -74,4 +74,37 @@ describe('GET /api/blogs', () => {
   });
 });
 
-  
+describe('POST /api/blogs', () => {
+  test('successfully creates a new blog post', async () => {
+    // Initial count of blogs
+    const initialBlogs = await Blog.find({});
+    const initialCount = initialBlogs.length;
+
+    // New blog data
+    const newBlog = {
+      title: 'New Test Blog',
+      author: 'Test Author',
+      url: 'http://testblog.com',
+      likes: 7
+    };
+
+    // Send POST request
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/);
+
+    // Check the total number of blogs increased by one
+    const blogsAfter = await Blog.find({});
+    expect(blogsAfter.length).toBe(initialCount + 1);
+
+    // Verify the content of the returned blog
+    const returnedBlog = response.body;
+    expect(returnedBlog.title).toBe(newBlog.title);
+    expect(returnedBlog.author).toBe(newBlog.author);
+    expect(returnedBlog.url).toBe(newBlog.url);
+    expect(returnedBlog.likes).toBe(newBlog.likes);
+    expect(returnedBlog.id).toBeDefined(); // From previous task's id transformation
+  });
+});

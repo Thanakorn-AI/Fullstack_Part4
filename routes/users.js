@@ -11,6 +11,10 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
+  if (username.length < 3 || password.length < 3) {
+    return res.status(400).json({ error: 'Username and password must be at least 3 characters long' });
+  }
+
   const existingUser = await User.findOne({ username });
   if (existingUser) {
     return res.status(400).json({ error: 'Username must be unique' });

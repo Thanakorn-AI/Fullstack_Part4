@@ -1,12 +1,13 @@
 // routes/blogRoutes.js
 const express = require('express');
 const Blog = require('../models/blog');
+const User = require('../models/user');
 
 const router = express.Router();
 
 router.get('/', async (request, response) => {
   try {
-    const blogs = await Blog.find({});
+    const blogs = await Blog.find({}).populate('user', { username: 1, name: 1, id: 1 });
     response.json(blogs);
   } catch (error) {
     response.status(500).json({ error: 'Error fetching blogs' });
@@ -15,9 +16,29 @@ router.get('/', async (request, response) => {
 
 router.post('/', async (request, response) => {
   try {
-    const blog = new Blog(request.body);
-    const result = await blog.save();
-    response.status(201).json(result);
+    const { title, author, url, likes } = request.body;
+
+    // Find the first user in the database
+    const user = await User.findOne({});
+    if (!user) {
+      return response.status(400).json({ error: 'No users exist in the database' });
+    }
+
+    const blog = new Blog({
+      title,
+      author,
+      url,
+      likes: likes !== undefined ? likes : 0,
+      user: user._id
+    });
+
+    const savedBlog = await blog.save();
+
+    // Add blog to user's blogs array
+    user.blogs = user.blogs.concat(savedBlog._id);
+    await user.save();
+
+    response.status(201).json(savedBlog);
   } catch (error) {
     console.error('Error saving blog:', error);
     response.status(400).json({ error: 'Error saving the blog' });

@@ -1,5 +1,6 @@
 // routes/blogRoutes.js
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const Blog = require('../models/blog');
 const User = require('../models/user');
 
@@ -14,15 +15,29 @@ router.get('/', async (request, response) => {
   }
 });
 
+
 router.post('/', async (request, response) => {
   try {
-    const { title, author, url, likes } = request.body;
-
-    // Find the first user in the database
-    const user = await User.findOne({});
-    if (!user) {
-      return response.status(400).json({ error: 'No users exist in the database' });
+    // Extract token from Authorization header
+    const authHeader = request.get('authorization');
+    if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
+      return response.status(401).json({ error: 'token missing' });
     }
+    const token = authHeader.substring(7); // Remove "Bearer " (7 characters)
+
+    // Verify token
+    const decodedToken = jwt.verify(token, process.env.SECRET);
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: 'token invalid' });
+    }
+
+    // Find user from token
+    const user = await User.findById(decodedToken.id);
+    if (!user) {
+      return response.status(401).json({ error: 'user not found' });
+    }
+
+    const { title, author, url, likes } = request.body;
 
     const blog = new Blog({
       title,
@@ -41,9 +56,13 @@ router.post('/', async (request, response) => {
     response.status(201).json(savedBlog);
   } catch (error) {
     console.error('Error saving blog:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return response.status(401).json({ error: 'token invalid' });
+    }
     response.status(400).json({ error: 'Error saving the blog' });
   }
 });
+
 
 // New DELETE route
 router.delete('/:id', async (request, response) => {

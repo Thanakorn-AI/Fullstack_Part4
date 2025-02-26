@@ -65,16 +65,41 @@ router.post('/', async (request, response) => {
 // New DELETE route
 router.delete('/:id', async (request, response) => {
   try {
-    const blog = await Blog.findByIdAndDelete(request.params.id);
-    if (!blog) {
-      return response.status(404).json({ error: 'Blog not found' });
+    // Check for token
+    if (!request.token) {
+      return response.status(401).json({ error: 'token missing' });
     }
-    response.status(204).end(); // No content on successful deletion
+
+    // Verify token
+    const decodedToken = jwt.verify(request.token, process.env.SECRET);
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: 'token invalid' });
+    }
+
+    // Find the blog
+    const blog = await Blog.findById(request.params.id);
+    if (!blog) {
+      return response.status(404).json({ error: 'blog not found' });
+    }
+
+    // Check if the user is the creator
+    const userIdFromToken = decodedToken.id;
+    if (blog.user.toString() !== userIdFromToken.toString()) {
+      return response.status(403).json({ error: 'only the creator can delete this blog' });
+    }
+
+    // Delete the blog
+    await Blog.findByIdAndDelete(request.params.id);
+    response.status(204).end();
   } catch (error) {
     console.error('Error deleting blog:', error);
-    response.status(500).json({ error: 'Error deleting the blog' });
+    if (error.name === 'JsonWebTokenError') {
+      return response.status(401).json({ error: 'token invalid' });
+    }
+    response.status(500).json({ error: 'error deleting the blog' });
   }
 });
+
 
 // New PUT route (Update likes)
 router.put('/:id', async (request, response) => {

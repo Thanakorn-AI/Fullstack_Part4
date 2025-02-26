@@ -16,17 +16,15 @@ router.get('/', async (request, response) => {
 });
 
 
+
 router.post('/', async (request, response) => {
   try {
-    // Extract token from Authorization header
-    const authHeader = request.get('authorization');
-    if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
+    // Use token from middleware
+    if (!request.token) {
       return response.status(401).json({ error: 'token missing' });
     }
-    const token = authHeader.substring(7); // Remove "Bearer " (7 characters)
-
     // Verify token
-    const decodedToken = jwt.verify(token, process.env.SECRET);
+    const decodedToken = jwt.verify(request.token, process.env.SECRET);
     if (!decodedToken.id) {
       return response.status(401).json({ error: 'token invalid' });
     }
